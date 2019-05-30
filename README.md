@@ -1,5 +1,3 @@
-# SUMO
-
 **This code is for paper `Hierarchical Transformers for Multi-Document Summarization` in ACL2019**
 
 **Python version**: This code is in Python3.6
