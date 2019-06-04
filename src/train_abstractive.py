@@ -322,7 +322,7 @@ if __name__ == '__main__':
     parser.add_argument('-log_file', default='', type=str)
     parser.add_argument('-mode', default='train', type=str)
     parser.add_argument('-visible_gpus', default='-1', type=str)
-    parser.add_argument('-onmt_path', default='../../data/ranked_abs3_fast_b40/WIKI', type=str)
+    parser.add_argument('-data_path', default='../../data/ranked_abs3_fast_b40/WIKI', type=str)
     parser.add_argument('-model_path', default='../../models', type=str)
     parser.add_argument('-vocab_path', default='../../data/spm9998_3.model', type=str)
     parser.add_argument('-train_from', default='', type=str)
