@@ -24,9 +24,7 @@ from abstractive import data_loader, model_builder
 from others import distributed
 from others.logging import init_logger, logger
 
-model_flags = ['encoder_type', 'emb_size', 'enc_hidden_size', 'dec_hidden_size', 'enc_layers', 'dec_layers', 'encoder',
-               'decoder',
-               'rnn_type', 'copy_attn', 'reuse_copy_attn', 'block_size', 'heads', 'ff_size', 'hier', 'global_attention',
+model_flags = [ 'emb_size', 'enc_hidden_size', 'dec_hidden_size', 'enc_layers', 'dec_layers', 'block_size', 'heads', 'ff_size', 'hier',
                'inter_layers', 'inter_heads', 'block_size']
 
 
@@ -263,86 +261,6 @@ def print_flags(args):
     print(checkpoint['opt'])
 
 
-def baseline():
-    device = "cpu"
-
-    spm = sentencepiece.SentencePieceProcessor()
-    spm.Load(FLAGS.vocab_path)
-    word_padding_idx = spm.PieceToId('<PAD>')
-    symbols = {'BOS': spm.PieceToId('<S>'), 'EOS': spm.PieceToId('</S>'), 'PAD': word_padding_idx,
-               'EOT': spm.PieceToId('<T>'), 'EOP': spm.PieceToId('<P>'), 'EOQ': spm.PieceToId('<Q>')}
-
-    if (FLAGS.dataset == ''):
-        dataset = ['train', 'valid', 'test']
-    else:
-        dataset = [FLAGS.dataset]
-
-    for d in dataset:
-        iter = data_loader.AbstractiveDataloader(load_dataset(d, shuffle=False), symbols, FLAGS.valid_batch_size,
-                                                 device, shuffle=False, is_test=True)
-
-        lead_save = open(os.path.join(FLAGS.result_path, 'baseline_output_' + d + '.lead'), 'w')
-        gold_save = open(os.path.join(FLAGS.result_path, 'baseline_output_' + d + '.gold'), 'w')
-        len_lst = [5, 10, 20, 40]
-        lead_para_save = [open(os.path.join(FLAGS.result_path, 'baseline_output_para_%d_' % i + d + '.lead'), 'w') for i
-                          in len_lst]
-        nnn = 0
-        for b in iter:
-            for i in range(len(b)):
-                src = [spm.DecodeIds([int(t) for t in b.src[i][j]]).split('<T>')[-1].replace('<P>', '').replace('</S>',
-                                                                                                                '').replace(
-                    '<PAD>', '').strip() for j in range(b.src.size(1))]
-                # src = spm.DecodeIds([int(t) for t in [b.src[i][j] for j in range(b.src.size(1))]]).split('<T>')[-1].replace(
-                #     '<P>', '').replace('</S>','').replace('<PAD>', '').strip()
-                # src = src[1:]
-                # print([len(p.split()) for p in src])
-                for j, l in enumerate(len_lst):
-                    lead_para_save[j].write(' '.join(src[:l]) + '\n')
-                tgt = b.tgt_str[i].replace('<t>', '').replace('</t>', '').split()
-                lead = ' '.join(src).split()[:len(tgt)]
-                lead_save.write(' '.join(lead) + '\n')
-                gold_save.write(' '.join(tgt) + '\n')
-        # print(nnn / 3800)
-        lead_save.close()
-        gold_save.close()
-        [f.close() for f in lead_para_save]
-        logger.info('Saved lead results to %s' % os.path.realpath(lead_save.name))
-        logger.info('Saved gold results to %s' % os.path.realpath(gold_save.name))
-    # report_rouge(lead_save,gold_save)
-
-
-def stats():
-    device = "cpu"
-    spm = sentencepiece.SentencePieceProcessor()
-    spm.Load(FLAGS.vocab_path)
-    word_padding_idx = spm.PieceToId('<PAD>')
-    symbols = {'BOS': spm.PieceToId('<S>'), 'EOS': spm.PieceToId('</S>'), 'PAD': word_padding_idx,
-               'EOT': spm.PieceToId('<T>'), 'EOP': spm.PieceToId('<P>'), 'EOQ': spm.PieceToId('<Q>')}
-
-    if (FLAGS.dataset == ''):
-        dataset = ['train', 'valid', 'test']
-    else:
-        dataset = [FLAGS.dataset]
-
-    src_l, tgt_l = 0, 0
-    n = 0
-    for d in dataset:
-        iter = data_loader.AbstractiveDataloader(load_dataset(d, shuffle=False), symbols, FLAGS.valid_batch_size,
-                                                 device, shuffle=False, is_test=True)
-
-        for b in iter:
-            src_l += sum([int(i) for i in b.src_length])
-            tgt_l += b.tgt.size(0) * b.tgt.size(1) - int(torch.sum(b.tgt == 6))
-            n += int(b.tgt.size(1))
-        # print(nnn / 3800)
-        #
-        #
-        logger.info('n %d' % n)
-        logger.info('src_l %f' % (1.0 * src_l / n))
-        logger.info('tgt_l %f' % (1.0 * tgt_l / n))
-
-    # report_rouge(lead_save,gold_save)
-
 
 def run(args, device_id, error_queue):
     """ run process """
@@ -412,24 +330,22 @@ if __name__ == '__main__':
     parser.add_argument('-trunc_src_ntoken', default=500, type=int)
     parser.add_argument('-trunc_tgt_ntoken', default=200, type=int)
 
-    parser.add_argument('-encoder', default='transformer', type=str)
-    parser.add_argument('-decoder', default='transformer', type=str)
-    parser.add_argument('-emb_size', default=32, type=int)
-    parser.add_argument('-enc_layers', default=1, type=int)
+    parser.add_argument('-emb_size', default=256, type=int)
+    parser.add_argument('-enc_layers', default=8, type=int)
     parser.add_argument('-dec_layers', default=1, type=int)
-    parser.add_argument('-enc_dropout', default=0, type=float)
+    parser.add_argument('-enc_dropout', default=6, type=float)
     parser.add_argument('-dec_dropout', default=0, type=float)
-    parser.add_argument('-enc_hidden_size', default=32, type=int)
-    parser.add_argument('-dec_hidden_size', default=32, type=int)
+    parser.add_argument('-enc_hidden_size', default=256, type=int)
+    parser.add_argument('-dec_hidden_size', default=256, type=int)
     parser.add_argument('-heads', default=8, type=int)
-    parser.add_argument('-ff_size', default=128, type=int)
+    parser.add_argument('-ff_size', default=1024, type=int)
     parser.add_argument("-hier", type=str2bool, nargs='?',const=True,default=True)
 
 
     parser.add_argument('-batch_size', default=10000, type=int)
     parser.add_argument('-valid_batch_size', default=10000, type=int)
     parser.add_argument('-optim', default='adam', type=str)
-    parser.add_argument('-lr', default=1e-3, type=float)
+    parser.add_argument('-lr', default=3, type=float)
     parser.add_argument('-max_grad_norm', default=0, type=float)
     parser.add_argument('-seed', default=0, type=int)
 
@@ -465,20 +381,19 @@ if __name__ == '__main__':
 
     # flags for  hier
     # flags.DEFINE_boolean('old_inter_att', False, 'old_inter_att')
-    parser.add_argument('-inter_att', default=2, type=int)
     parser.add_argument('-inter_layers', default='0', type=str)
 
-    parser.add_argument('-inter_heads', default=4, type=int)
-    parser.add_argument('-trunc_src_nblock', default=16, type=int)
+    parser.add_argument('-inter_heads', default=8, type=int)
+    parser.add_argument('-trunc_src_nblock', default=24, type=int)
 
     # flags for  graph
 
 
     # flags for  learning
     parser.add_argument('-beta1', default=0.9, type=float)
-    parser.add_argument('-beta2', default=0.999, type=float)
-    parser.add_argument('-warmup_steps', default=4000, type=int)
-    parser.add_argument('-decay_method', default='', type=str)
+    parser.add_argument('-beta2', default=0.998, type=float)
+    parser.add_argument('-warmup_steps', default=8000, type=int)
+    parser.add_argument('-decay_method', default='noam', type=str)
     parser.add_argument('-label_smoothing', default=0.1, type=float)
 
     args = parser.parse_args()

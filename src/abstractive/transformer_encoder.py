@@ -72,7 +72,7 @@ class TransformerPoolingLayer(nn.Module):
 
 class TransformerInterEncoder(nn.Module):
     def __init__(self, num_layers, d_model, heads, d_ff,
-                 dropout, embeddings, inter_att_version, inter_layers, inter_heads, device):
+                 dropout, embeddings, inter_layers, inter_heads, device):
         super(TransformerInterEncoder, self).__init__()
         inter_layers = [int(i) for i in inter_layers]
         self.device = device
@@ -81,19 +81,11 @@ class TransformerInterEncoder(nn.Module):
         self.embeddings = embeddings
         self.pos_emb = PositionalEncoding(dropout, int(self.embeddings.embedding_dim / 2))
         self.dropout = nn.Dropout(dropout)
-        self.inter_att_version = inter_att_version
 
-        if (inter_att_version == 2):
-            self.transformer_layers = nn.ModuleList(
-                [TransformerInterLayer(d_model, inter_heads, d_ff, dropout) if i in inter_layers else TransformerEncoderLayer(
-                    d_model, heads, d_ff, dropout)
-                 for i in range(num_layers)])
-        elif (inter_att_version == 3):
-            self.transformer_layers = nn.ModuleList(
-                [TransformerNewInterLayer(d_model, inter_heads, d_ff,
-                                          dropout) if i in inter_layers else TransformerEncoderLayer(d_model, heads,
-                                                                                                     d_ff, dropout)
-                 for i in range(num_layers)])
+        self.transformer_layers = nn.ModuleList(
+            [TransformerInterLayer(d_model, inter_heads, d_ff, dropout) if i in inter_layers else TransformerEncoderLayer(
+                d_model, heads, d_ff, dropout)
+             for i in range(num_layers)])
         self.transformer_types = ['inter' if i in inter_layers else 'local' for i in range(num_layers)]
         print(self.transformer_types)
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)

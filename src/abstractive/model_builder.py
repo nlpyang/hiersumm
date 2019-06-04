@@ -94,14 +94,8 @@ class Summarizer(nn.Module):
             tgt_embeddings.weight = src_embeddings.weight
 
         if (self.args.hier):
-            if (self.args.inter_att == 2):
-                self.encoder = TransformerInterEncoder(self.args.enc_layers, self.args.enc_hidden_size, self.args.heads,
-                                                       self.args.ff_size, self.args.enc_dropout, src_embeddings,
-                                                       inter_att_version=2, inter_layers=self.args.inter_layers, inter_heads= self.args.inter_heads, device=device)
-            elif (self.args.inter_att == 3):
-                self.encoder = TransformerInterEncoder(self.args.enc_layers, self.args.enc_hidden_size, self.args.heads,
-                                                       self.args.ff_size, self.args.enc_dropout, src_embeddings,
-                                                       inter_att_version=3, inter_layers=self.args.inter_layers, inter_heads=self.args.inter_heads, device=device)
+            self.encoder = TransformerInterEncoder(self.args.enc_layers, self.args.enc_hidden_size, self.args.heads,
+                                                   self.args.ff_size, self.args.enc_dropout, src_embeddings, inter_layers=self.args.inter_layers, inter_heads= self.args.inter_heads, device=device)
         else:
             self.encoder = TransformerEncoder(self.args.enc_layers, self.args.enc_hidden_size, self.args.heads,
                                               self.args.ff_size,
