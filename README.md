@@ -17,6 +17,8 @@ https://drive.google.com/open?id=1iiPkkZHE9mLhbF5b39y3ua5MJhgGM-5u
 * The top-40 paragraphs for each instance is extracted.
 * Extract the `.pt` files into one directory.
 
+The sentencepieve vocab file is at:
+https://drive.google.com/open?id=1zbUILFWrgIeLEzSP93Mz5JkdVwVPY9Bf
 
 ## Model Training:
 
