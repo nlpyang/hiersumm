@@ -86,12 +86,10 @@ class Translator(object):
                 len(translation_batch["predictions"]))
         batch_size = batch.batch_size
 
-        preds, pred_score, gold_score,tgt_str  = list(zip(
-            *sorted(zip(translation_batch["predictions"],
-                        translation_batch["scores"],
-                        translation_batch["gold_score"],
-                        batch.tgt_str),
-                    key=lambda x: x[-1])))
+        preds, pred_score, gold_score, tgt_str, src = list(zip(*list(zip(translation_batch["predictions"],
+                                                                         translation_batch["scores"],
+                                                                         translation_batch["gold_score"],
+                                                                         batch.tgt_str, batch.src))))
 
 
         translations = []
@@ -100,9 +98,9 @@ class Translator(object):
                 for n in range(self.n_best)],[])
             gold_sent = tgt_str[b].split()
             if (self.args.hier):
-                raw_src = '<PARA>'.join([self.vocab.DecodeIds(list([int(w) for w in t])) for t in batch.src[b]])
+                raw_src = '<PARA>'.join([self.vocab.DecodeIds(list([int(w) for w in t])) for t in src[b]])
             else:
-                raw_src = self.vocab.DecodeIds(list([int(w) for w in batch.src[b]]))
+                raw_src = self.vocab.DecodeIds(list([int(w) for w in src[b]]))
 
             translation = (pred_sents, gold_sent, raw_src)
             # translation = (pred_sents[0], gold_sent)
@@ -148,6 +146,7 @@ class Translator(object):
                     pred_str = ' '.join(pred).replace('<Q>', ' ').replace(r' +', ' ').replace('<unk>', 'UNK').strip()
                     gold_str = ' '.join(gold).replace('<t>', '').replace('</t>', '').replace('<Q>', ' ').replace(r' +',
                                                                                                                  ' ').strip()
+                    gold_str = gold_str.lower()
                     self.raw_can_out_file.write(' '.join(pred).strip() + '\n')
                     self.raw_gold_out_file.write(' '.join(gold).strip() + '\n')
                     self.can_out_file.write(pred_str + '\n')
