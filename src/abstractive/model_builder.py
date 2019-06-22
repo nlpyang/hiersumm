@@ -17,52 +17,27 @@ import torch
 
 def build_optim(args, model, checkpoint):
     """ Build optimizer """
-    saved_optimizer_state_dict = None
+    optim = Optimizer(
+        args.optim, args.lr, args.max_grad_norm,
+        beta1=args.beta1, beta2=args.beta2,
+        decay_method=args.decay_method,
+        warmup_steps=args.warmup_steps, model_size=args.enc_hidden_size)
+
 
     if args.train_from != '':
-        optim = checkpoint['optim']
-        saved_optimizer_state_dict = optim.optimizer.state_dict()
-    else:
-        optim = Optimizer(
-            args.optim, args.lr, args.max_grad_norm,
-            beta1=args.beta1, beta2=args.beta2,
-            decay_method=args.decay_method,
-            warmup_steps=args.warmup_steps, model_size=args.enc_hidden_size)
-
-    # Stage 1:
-    # Essentially optim.set_parameters (re-)creates and optimizer using
-    # model.paramters() as parameters that will be stored in the
-    # optim.optimizer.param_groups field of the torch optimizer class.
-    # Importantly, this method does not yet load the optimizer state, as
-    # essentially it builds a new optimizer with empty optimizer state and
-    # parameters from the model.
-    optim.set_parameters(list(model.named_parameters()))
-
-    if args.train_from != '':
-
-        # optimizer from a checkpoint, we load the saved_optimizer_state_dict
-        # into the re-created optimizer, to set the optim.optimizer.state
-        # field, which was previously empty. For this, we use the optimizer
-        # state saved in the "saved_optimizer_state_dict" variable for
-        # this purpose.
-        # See also: https://github.com/pytorch/pytorch/issues/2830
-        optim.optimizer.load_state_dict(saved_optimizer_state_dict)
-        # Convert back the state values to cuda type if applicable
+        optim.optimizer.load_state_dict(checkpoint['optim'])
         if args.visible_gpus != '-1':
             for state in optim.optimizer.state.values():
                 for k, v in state.items():
                     if torch.is_tensor(v):
                         state[k] = v.cuda()
 
-        # We want to make sure that indeed we have a non-empty optimizer state
-        # when we loaded an existing model. This should be at least the case
-        # for Adam, which saves "exp_avg" and "exp_avg_sq" state
-        # (Exponential moving average of gradient and squared gradient values)
         if (optim.method == 'adam') and (len(optim.optimizer.state) < 1):
             raise RuntimeError(
                 "Error: loaded Adam optimizer from existing model" +
                 " but optimizer state is empty")
 
+    optim.set_parameters(list(model.named_parameters()))
     return optim
 
 
