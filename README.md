@@ -24,7 +24,7 @@ https://drive.google.com/open?id=1zbUILFWrgIeLEzSP93Mz5JkdVwVPY9Bf
 
 To train with the default setting as in the paper:
 ```
-python train_abstractive.py -data_path DATA_PATH/WIKI -mode train -batch_size 10500 -seed 666 -train_steps 1000000 -save_checkpoint_steps 5000  -report_every 100 -trunc_tgt_ntoken 400 -trunc_src_nblock 24 -visible_gpus 0,1,2,3 -gpu_ranks 0,1,2,4 -world_size 4 -accum_count 4 -dec_dropout 0.1 -enc_dropout 0.1 -label_smoothing 0.1 -vocab_path VOCAB_PATH  -model_path MODEL_PATH -accum_count 4  -log_file LOG_PATH  -inter_layers 6,7 -inter_heads 8 -hier
+python train_abstractive.py -data_path DATA_PATH/WIKI -mode train -batch_size 10500 -seed 666 -train_steps 1000000 -save_checkpoint_steps 5000  -report_every 100 -trunc_tgt_ntoken 400 -trunc_src_nblock 24 -visible_gpus 0,1,2,3 -gpu_ranks 0,1,2,3 -world_size 4 -accum_count 4 -dec_dropout 0.1 -enc_dropout 0.1 -label_smoothing 0.1 -vocab_path VOCAB_PATH  -model_path MODEL_PATH -accum_count 4  -log_file LOG_PATH  -inter_layers 6,7 -inter_heads 8 -hier
 ```
 * DATA_PATH is where you put the `.pt` files
 * VOCAB_PATH is where you put the sentencepiece model file
