@@ -6,6 +6,10 @@
 
 Some codes are borrowed from ONMT(https://github.com/OpenNMT/OpenNMT-py)
 
+**Trained Model**: Please use this url for a trained model https://drive.google.com/open?id=1suMaf7yBZPSBtaJKLnPyQ4uZNcm0VgDz
+
+
+
 ## Data Preparation:
 
 The raw version of the WikiSum dataset can be built following steps in https://github.com/tensorflow/tensor2tensor/tree/5acf4a44cc2cbe91cd788734075376af0f8dd3f4/tensor2tensor/data_generators/wikisum
